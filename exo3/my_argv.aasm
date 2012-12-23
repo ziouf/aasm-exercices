@@ -1,0 +1,36 @@
+.mod_load asm-sparc
+.mod_load out-elf32
+
+.include sparc/v8.def
+.include my_aff_reg.inc
+
+.define argc    %i0
+.define argv    %i1
+
+.section code .text
+         .section_align 4
+         .mod_asm opcodes v8
+
+         .export main
+         .proc main
+               save sp, -112, sp
+
+               add %g0, 1, %l0
+
+               loop:
+                       @my_aff_reg %l0   ; Affichage du nombre
+
+                       add %l0, %l0, %l0 ; Elevation a la puiss 2
+
+                       tst %l0           ; Test sur le registre %l1
+                       bnz loop          ; si != 0 goto loop
+                       nop
+                       ba end            ; sinon goto end
+                       nop
+
+               end:
+
+               ret
+                 restore
+         .endp
+.ends

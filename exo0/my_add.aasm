@@ -1,0 +1,24 @@
+.mod_load asm-sparc
+.mod_load out-elf32
+
+.include sparc/v8.def
+.include values.inc
+.include my_aff_reg.inc
+
+
+.section code .text
+         .section_align 4
+         .mod_asm opcodes v8
+
+         .export main
+         .proc main
+               save sp, -112, sp
+
+               add %g0, B, %o0
+               add %o0, A, %o1
+               @my_aff_reg %o1
+
+               ret
+                 restore
+         .endp
+.ends

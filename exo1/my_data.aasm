@@ -1,0 +1,38 @@
+.mod_load asm-sparc
+.mod_load out-elf32
+
+.include sparc/v8.def
+.include my_aff_value.inc
+
+
+.section data .data
+         .section_align 4
+         .mod_asm opcodes v8
+         var1:  .dump dword 0x424242
+.ends
+
+.section data .bss
+         .section_align 4
+         .mod_asm opcodes v8
+         var2:  .reserve 4
+.ends
+
+.section code .text
+         .section_align 4
+         .mod_asm opcodes v8
+
+         .export main
+         .proc main
+               save sp, -112, sp
+
+               @set .data:var1, %o0
+               ld [%o0], %o1
+               @set .bss:var2, %o0
+               st %o1, [%o0]
+
+               @my_aff_value
+
+               ret
+                 restore
+         .endp
+.ends
