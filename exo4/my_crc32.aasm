@@ -1,0 +1,60 @@
+.mod_load asm-sparc
+.mod_load out-elf32
+.include sparc/v8.def
+
+.define tab_crc32 %l0
+.define str %i0
+.define r_shift %l2
+.define tmp1 %l3
+.define tmp2 %l4
+.define tmp3 %l6
+.define curr_oct %l5
+.define states %l7
+.define size_str %i1
+.define i %l1
+
+.section data .rodata
+  .section_align 4
+  crc32_table_source: .include crc32_table.inc
+.ends
+
+.section code .text
+  .mod_asm opcodes v8
+  .section_align 4
+  .export do_crc32
+
+  .proc   do_crc32
+    save %sp, -112, %sp
+
+    sub %g0, 1, states             ;0 - 1 = fffffff
+
+    tst size_str
+    bz end                         ; if (size_str == 0) on sort
+
+    clr i
+    @set .rodata:crc32_table_source, tab_crc32
+
+    loop:
+      ldub  [str + i], curr_oct
+      srl states,8, r_shift        ;shift right(s,8)
+
+      xor curr_oct, states, tmp1   ;i XOR s AND 0xFF
+
+      and tmp1,0xff, tmp2
+      sll tmp2, 2, tmp2
+      ld [tab_crc32 + tmp2], tmp3  ;t[i XOR s AND 0xFF]
+
+      xor r_shift, tmp3, states    ;shift right(s, 8) XOR t[buffer[i] XOR s AND 0xff]
+
+      inc i
+      cmp size_str, i
+      bne loop
+      nop
+
+  end:
+    not states, %i0                ;inversion des bits du CRC
+
+  ret
+    restore
+  .endp
+.ends
